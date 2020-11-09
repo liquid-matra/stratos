@@ -1,5 +1,16 @@
 # Change Log
 
+## 4.2.1
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.2.0...4.2.1)
+
+This release contains a single fix relating to Single Sign On:
+
+**Fixes:**
+- SSO Auth Doesn't Work for Endpoints [\#4716](https://github.com/cloudfoundry/stratos/issues/4716)
+
+
+
 ## 4.2.0
 
 [Full Changelog](https://github.com/SUSE/stratos/compare/4.1.0...4.2.0)
@@ -357,7 +368,7 @@ This release contains two fixes listed below.
 
 ## 2.5.3
 
-[Full Changelog](https://github.com/suse/stratos/compare/2.5.2...2.5.3)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.5.2...2.5.3)
 
 This release contains a number of fixes and improvements:
 
@@ -375,7 +386,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.5.2
 
-[Full Changelog](https://github.com/suse/stratos/compare/2.5.1...2.5.2)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.5.1...2.5.2)
 
 This release contains a number of fixes and improvements:
 
@@ -397,7 +408,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.5.1
 
-[Full Changelog](https://github.com/suse/stratos/compare/2.5.0...2.5.1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.5.0...2.5.1)
 
 This release contains a number of fixes and improvements:
 
@@ -415,7 +426,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.5.0
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.4.0...2.5.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.4.0...2.5.0)
 
 This release contains a number of fixes and improvements:
 
@@ -455,7 +466,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.4.0
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.3.0...2.4.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.3.0...2.4.0)
 
 This release contains a number of fixes and improvements:
 
@@ -494,7 +505,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.3.0
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.2.0...2.3.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.2.0...2.3.0)
 
 ### Important Security Fixes
 
@@ -567,7 +578,7 @@ This release contains a number of fixes and improvements:
 
 ## 2.2.0
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.1.2...2.2.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.1.2...2.2.0)
 
 This release contains a number of fixes and improvements. It introduces the first set of Extension points to allow
 users to take Stratos and extend it with new functionality. Initial documentation is available [here](https://github.com/cloudfoundry/stratos/blob/master/docs/extensions.md). Additionally, when a metrics endpoint is connected, Cloud Foundry cell information is now shown in the Application Instances tab. A Cloud Foundry cells table and Cell summary pages have also been added to the Cloud Foundry section.
@@ -602,7 +613,7 @@ users to take Stratos and extend it with new functionality. Initial documentatio
 
 ## 2.1.2
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.1.1...2.1.2)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.1.1...2.1.2)
 
 This release fixes an issue with a broken backend dependency, where the pinned version that was being used is no longer available.
 
@@ -610,7 +621,7 @@ This release fixes an issue with a broken backend dependency, where the pinned v
 
 ## 2.1.1
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.1.0...2.1.1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.1.0...2.1.1)
 
 This is a bug fix release that addresses the following issues:
 
@@ -627,7 +638,7 @@ This is a bug fix release that addresses the following issues:
 
 ## 2.1.0
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.1...2.1.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.1...2.1.0)
 
 Release highlights:
 
@@ -687,7 +698,7 @@ Release highlights:
 - Remove all tokens associated with a cnsi on unregister, also fix e2e [\#2821](https://github.com/cloudfoundry/stratos/pull/2821)
 
 ## [2.0.1](https://github.com/cloudfoundry/stratos/tree/2.0.1) (2018-08-16)
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.0...2.0.1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.0...2.0.1)
 
 **Fixed bugs:**
 
@@ -704,7 +715,7 @@ Release highlights:
 
 
 ## 2.0.1
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.0...2.0.1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.0...2.0.1)
 
 This is a bugfix release that fixes an issue that prevents Stratos from correctly building in certain environments.
 
@@ -744,7 +755,7 @@ This release contains all of the fixes and improvements from the 2.0.0 Beta and 
 
 
 ## 2.0.0 Release Candidate 3
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.0-rc2...2.0.0-rc3)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.0-rc2...2.0.0-rc3)
 
 
 **Improvements:**
@@ -796,7 +807,7 @@ This release contains all of the fixes and improvements from the 2.0.0 Beta and 
 - Pagination obs performance [\#2561](https://github.com/cloudfoundry/stratos/pull/2561)
 
 ## 2.0.0 Release Candidate 2
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.0-rc1...2.0.0-rc2)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.0-rc1...2.0.0-rc2)
 
 **Improvements:**
 - Use consistent icons [\#2517](https://github.com/cloudfoundry/stratos/pull/2517)
@@ -821,7 +832,7 @@ This release contains all of the fixes and improvements from the 2.0.0 Beta and 
 
 
 ## 2.0.0 Release Candidate 1
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/2.0.0-beta-002...2.0.0-RC-1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/2.0.0-beta-002...2.0.0-RC-1)
 
 This is the first release candidate of Version 2 of Stratos.
 
@@ -839,7 +850,7 @@ The main focus of this release are bug fixes for release.
 - Fixes state reset issue when creating a service instance from different modes [\#2515](https://github.com/cloudfoundry/stratos/pull/2515)
 
 ## 2.0.0 Beta 2
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/v2.0.0-beta-001...2.0.0-beta-002)
+[Full Changelog](https://github.com/SUSE/stratos/compare/v2.0.0-beta-001...2.0.0-beta-002)
 
 This is the second Beta release of Version 2 of Stratos. This is a major release.
 
@@ -900,7 +911,7 @@ The main focus of this release are bug fixes and hardening for a first release c
 
 ## 2.0.0 Beta 1
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/1.0.2...v2.0.0-beta-001)
+[Full Changelog](https://github.com/SUSE/stratos/compare/1.0.2...v2.0.0-beta-001)
 
 This is the first Beta release of Version 2 of Stratos. This is a major release.
 
@@ -924,7 +935,7 @@ The following features in version 1 are not currently available in version 2:
 
 ## 1.1.0 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/1.0.2...1.1.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/1.0.2...1.1.0)
 
 **Improvements:**
 
@@ -936,7 +947,7 @@ The following features in version 1 are not currently available in version 2:
 
 ## 1.0.2 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/1.0.0...1.0.2)
+[Full Changelog](https://github.com/SUSE/stratos/compare/1.0.0...1.0.2)
 
 **Improvements:**
 
@@ -950,7 +961,7 @@ The following features in version 1 are not currently available in version 2:
 
 ## 1.0.0 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.9...1.0.0)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.9...1.0.0)
 
 **Improvements:**
 - Added French localization (*Open Source build only*) [\#1419](https://github.com/cloudfoundry/stratos/pull/1419)
@@ -961,7 +972,7 @@ The following features in version 1 are not currently available in version 2:
 
 ## 0.9.9 Release Candidate 1 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.8...0.9.9)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.8...0.9.9)
 
 This is the first Release Candidate of the Stratos UI Console. It contains the following improvements:
 
@@ -974,7 +985,7 @@ This is the first Release Candidate of the Stratos UI Console. It contains the f
 
 ## 0.9.8 Beta-3 Release 2
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.7...0.9.8)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.7...0.9.8)
 
 This is an update of the third beta release of the Stratos UI Console. It contains the following bug fixes and improvements:
 
@@ -994,7 +1005,7 @@ This is an update of the third beta release of the Stratos UI Console. It contai
 
 ## 0.9.7 Beta-3 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.6...0.9.7)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.6...0.9.7)
 
 This is the third beta release of the Stratos UI Console. It contains the following bug fixes:
 
@@ -1006,7 +1017,7 @@ This is the third beta release of the Stratos UI Console. It contains the follow
 
 ## 0.9.6 Beta-2 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.5...0.9.6)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.5...0.9.6)
 
 This is the second beta release of the Stratos UI Console. It contains the following bug fixes and improvements:
 
@@ -1045,7 +1056,7 @@ This is the second beta release of the Stratos UI Console. It contains the follo
 
 ## 0.9.5 Beta-1 Release
 
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.2...0.9.5)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.2...0.9.5)
 
 This is the first beta release of the Stratos UI Console. It contains the following bug fixes and improvements:
 
@@ -1074,7 +1085,7 @@ This is the first beta release of the Stratos UI Console. It contains the follow
 - Fixed create app issues related to route visibility/permissions [\#1246](https://github.com/cloudfoundry/stratos/pull/1246)
 
 ## 0.9.2 Alpha-3 Release
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.1...0.9.2)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.1...0.9.2)
 
 Third alpha release containing the following bug fixes and minor improvements:
 
@@ -1098,7 +1109,7 @@ Third alpha release containing the following bug fixes and minor improvements:
 - Remember grid or list state for the app wall [\#1199](https://github.com/cloudfoundry/stratos/pull/1199)
 
 ## 0.9.1 Alpha-2 Release
-[Full Changelog](https://github.com/cloudfoundry/stratos/compare/0.9.0...0.9.1)
+[Full Changelog](https://github.com/SUSE/stratos/compare/0.9.0...0.9.1)
 
 Second alpha release contains the following fixes:
 
