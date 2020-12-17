@@ -13,6 +13,7 @@ CONSOLE_ADMIN_SCOPE=stratos.admin
 CF_ADMIN_ROLE=cloud_controller.admin
 ALLOWED_ORIGINS=http://nginx
 SESSION_STORE_SECRET=wheeee!
+#SESSION_STORE_EXPIRY=20
 CONSOLE_PROXY_CERT_PATH=../../dev-ssl/server.crt
 CONSOLE_PROXY_CERT_KEY_PATH=../../dev-ssl/server.key
 ENCRYPTION_KEY=B374A26A71490437AA024E4FADD5B497FDFF1A8EA6FF12F6FB65AF2720B59CCF
@@ -25,8 +26,8 @@ LOG_TO_JSON=false
 LOG_API_REQUESTS=true
 
 SSO_LOGIN=false
-# Whitelist for the SSO redirect url. Paths can contain wildcard `*`
-SSO_WHITELIST=
+# Allow-list for the SSO redirect url. Paths can contain wildcard `*`
+SSO_ALLOWLIST=
 
 # Enable feature in tech preview
 ENABLE_TECH_PREVIEW=false
@@ -34,6 +35,9 @@ ENABLE_TECH_PREVIEW=false
 #UI_LIST_MAX_SIZE=600
 # If the max list size is hit allow the user to load all results anyway. Defaults to false
 #UI_LIST_ALLOW_LOAD_MAXED=false
+
+# By default, only show favorites endpoints on the home view
+# HOME_VIEW_SHOW_FAVORITES_ONLY=false
 
 # User Invites
 SMTP_FROM_ADDRESS=Stratos<invite@stratos.com>
@@ -80,3 +84,6 @@ INVITE_USER_CLIENT_SECRET=
 
 # Enabled Artifact Hub
 # ARTIFACT_HUB_DISABLED=false
+
+# Allow backup/restore feature?
+#FEATURE_ALLOW_BACKUP=false

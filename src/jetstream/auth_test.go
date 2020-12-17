@@ -785,7 +785,7 @@ func TestVerifySession(t *testing.T) {
 
 		var expectedScopes = `"scopes":["openid","scim.read","cloud_controller.admin","uaa.user","cloud_controller.read","password.write","routing.router_groups.read","cloud_controller.write","doppler.firehose","scim.write"]`
 
-		var expectedBody = `{"status":"ok","error":"","data":{"version":{"proxy_version":"dev","database_version":20161117141922},"user":{"guid":"asd-gjfg-bob","name":"admin","admin":false,` + expectedScopes + `},"endpoints":{"cf":{}},"plugins":null,"config":{"enableTechPreview":false,"APIKeysEnabled":"admin_only"}}}`
+		var expectedBody = `{"status":"ok","error":"","data":{"version":{"proxy_version":"dev","database_version":20161117141922},"user":{"guid":"asd-gjfg-bob","name":"admin","admin":false,` + expectedScopes + `},"endpoints":{"cf":{}},"plugins":null,"config":{"enableTechPreview":false,"APIKeysEnabled":"admin_only","homeViewShowFavoritesOnly":false}}}`
 
 		Convey("Should contain expected body", func() {
 			So(res, ShouldNotBeNil)
@@ -811,6 +811,12 @@ func TestVerifySessionNoDate(t *testing.T) {
 		res, _, ctx, pp, db, _ := setupHTTPTest(req)
 		defer db.Close()
 
+		//Init the auth service
+		err := pp.InitStratosAuthService(interfaces.Local)
+		if err != nil {
+			log.Fatalf("Could not initialise auth service: %v", err)
+		}
+
 		// Set a dummy userid in session - normally the login to UAA would do this.
 		sessionValues := make(map[string]interface{})
 		sessionValues["user_id"] = mockUserGUID
@@ -822,7 +828,7 @@ func TestVerifySessionNoDate(t *testing.T) {
 			So(errSession, ShouldBeNil)
 		})
 
-		err := pp.verifySession(ctx)
+		err = pp.verifySession(ctx)
 		Convey("Should not fail to verify session.", func() {
 			So(err, ShouldBeNil)
 		})

@@ -1,6 +1,8 @@
+import { Compiler, ComponentFactory, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
+import { HomePageEndpointCard } from '../../../core/src/features/home/home.types';
 import { IListAction } from '../../../core/src/shared/components/list/list.component.types';
 import { AppState, GeneralEntityAppState } from '../app-state';
 import {
@@ -19,11 +21,11 @@ import {
   PaginationPageIteratorConfig,
 } from '../entity-request-pipeline/pagination-request-base-handlers/pagination-iterator.pipe';
 import { EndpointAuthTypeConfig } from '../extension-types';
-import { FavoritesConfigMapper } from '../favorite-config-mapper';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EndpointModel } from '../types/endpoint.types';
 import { StratosStatus } from '../types/shared.types';
 import { UserFavorite } from '../types/user-favorites.types';
+import { UserFavoriteManager } from '../user-favorite-manager';
 
 export interface EntityCatalogEntityConfig {
   entityType: string;
@@ -58,6 +60,20 @@ export interface IStratosEntityWithIcons {
 export interface IEntityMetadata {
   name: string;
   [key: string]: string;
+}
+
+export interface HomeCardShortcut {
+  title: string;
+  link: string[];
+  icon: string;
+  iconFont?: string;
+}
+
+// Metadata for Home Card
+export interface HomeCardMetadata {
+  component?: (compiler: Compiler, injector: Injector) => Promise<ComponentFactory<HomePageEndpointCard>>;
+  shortcuts?: (endpointID: string) => HomeCardShortcut[];
+  fullView?: boolean;
 }
 
 /**
@@ -118,7 +134,6 @@ export class EndpointHealthCheck {
 export interface IStratosEndpointDefinition<T = EntityCatalogSchemas | EntitySchema> extends IStratosBaseEntityDefinition<T> {
   readonly logoUrl: string;
   readonly tokenSharing?: boolean;
-  readonly urlValidation?: boolean;
   readonly unConnectable?: boolean;
   /**
    * How many endpoints of this type can be registered, 0 - many
@@ -145,8 +160,10 @@ export interface IStratosEndpointDefinition<T = EntityCatalogSchemas | EntitySch
   readonly globalPrePaginationRequest?: PrePaginationApiRequest;
   readonly globalErrorMessageHandler?: ApiErrorMessageHandler;
   readonly healthCheck?: EndpointHealthCheck;
+  // Used for favorites - given an entity, get the endpoint ID of the endpoint it belongs to
+  readonly getEndpointIdFromEntity?: (entity: any) => string;
   readonly favoriteFromEntity?: <M extends IEntityMetadata = IEntityMetadata>(
-    entity: any, entityKey: string, favoritesConfigMapper: FavoritesConfigMapper
+    entity: any, entityKey: string, userFavoriteManager: UserFavoriteManager
   ) => UserFavorite<M>;
   /**
    * Allows the endpoint to fetch user roles, for example when the user loads Stratos or connects an endpoint of this type
@@ -161,6 +178,11 @@ export interface IStratosEndpointDefinition<T = EntityCatalogSchemas | EntitySch
    * Note - These should be restricted by type
    */
   readonly endpointListActions?: (store: Store<AppState>) => IListAction<EndpointModel>[];
+
+  /**
+   * Metadata for the card to show on the Home Page for this endpoint type
+   */
+  readonly homeCard?: HomeCardMetadata;
 }
 
 export interface StratosEndpointExtensionDefinition extends Omit<IStratosEndpointDefinition, 'schema'> { }
@@ -209,15 +231,15 @@ export type EntityRowBuilder<T> = [string, (entity: T, store?: Store<GeneralEnti
 
 export interface IStratosEntityBuilder<T extends IEntityMetadata, Y = any> {
   getMetadata(entity: Y): T;
-  getStatusObservable?(entity: Y): Observable<StratosStatus>;
   // TODO This should be used in the entities schema.
-  getGuid(entityMetadata: T): string;
-  getLink?(entityMetadata: T): string;
-  getLines?(): EntityRowBuilder<T>[];
+  getGuid(entity: Y): string;
+  getLink?(favorite: UserFavorite<T>): string;
   getSubTypeLabels?(entityMetadata: T): {
     singular: string,
     plural: string,
   };
+  // Is the underlying entity for the favorite valid?
+  getIsValid?(favorite: UserFavorite<T>): Observable<boolean>;
   /**
    * Actions that don't effect an individual entity i.e. create new
    * @returns global actions

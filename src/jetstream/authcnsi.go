@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/tokens"
 )
@@ -57,7 +56,7 @@ func (p *portalProxy) ssoLoginToCNSI(c echo.Context) error {
 
 	if len(code) == 0 {
 		// First time around
-		// Use the standard SSO Login Callback endpoint, so this can be whitelisted for Stratos and Endpoint login
+		// Use the standard SSO Login Callback endpoint, so this can be allow-listed for Stratos and Endpoint login
 		returnURL := getSSORedirectURI(state, state, endpointGUID)
 		redirectURL := fmt.Sprintf("%s/oauth/authorize?response_type=code&client_id=%s&redirect_uri=%s",
 			cnsiRecord.AuthorizationEndpoint, cnsiRecord.ClientId, url.QueryEscape(returnURL))
@@ -267,7 +266,7 @@ func (p *portalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIre
 			err = p.setCNSITokenRecord(theCNSIrecord.GUID, u.UserGUID, uaaToken)
 
 			// Update the endpoint to indicate that SSO Login is okay
-			repo, dbErr := cnsis.NewPostgresCNSIRepository(p.DatabaseConnectionPool)
+			repo, dbErr := p.GetStoreFactory().EndpointStore()
 			if dbErr == nil {
 				theCNSIrecord.SSOAllowed = true
 				repo.Update(theCNSIrecord, p.Config.EncryptionKeyInBytes)

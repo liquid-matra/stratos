@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -41,6 +42,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/crypto"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/datastore"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/factory"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/apikeys"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/console_config"
@@ -73,7 +75,7 @@ import (
 // server to come online before we bail out.
 const (
 	TimeoutBoundary      = 10
-	SessionExpiry        = 20 * 60 // Session cookies expire after 20 minutes
+	SessionExpiry        = 20 // Default value for session cookies expiration (20 minutes)
 	UpgradeVolume        = "UPGRADE_VOLUME"
 	UpgradeLockFileName  = "UPGRADE_LOCK_FILENAME"
 	LogToJSON            = "LOG_TO_JSON"
@@ -246,8 +248,16 @@ func main() {
 		}
 	}
 
+	sSessionExpiry := envLookup.String("SESSION_STORE_EXPIRY", strconv.Itoa(SessionExpiry))
+	sessionExpiry, err := strconv.Atoi(sSessionExpiry)
+	if err != nil {
+		sessionExpiry = SessionExpiry
+	}
+	log.Infof("Session expiration (minutes): %d", sessionExpiry)
+	// Convert to seconds
+	sessionExpiry *= 60
 	// Initialize session store for Gorilla sessions
-	sessionStore, sessionStoreOptions, err := initSessionStore(databaseConnectionPool, dc.DatabaseProvider, portalConfig, SessionExpiry, envLookup)
+	sessionStore, sessionStoreOptions, err := initSessionStore(databaseConnectionPool, dc.DatabaseProvider, portalConfig, sessionExpiry, envLookup)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -282,6 +292,10 @@ func main() {
 	// Setup the global interface for the proxy
 	portalProxy := newPortalProxy(portalConfig, databaseConnectionPool, sessionStore, sessionStoreOptions, envLookup)
 	portalProxy.SessionDataStore = sessionDataStore
+
+	store := factory.NewDefaultStoreFactory(databaseConnectionPool)
+	portalProxy.SetStoreFactory(store)
+
 	log.Info("Initialization complete.")
 
 	c := make(chan os.Signal, 2)
@@ -363,7 +377,7 @@ func main() {
 		log.Info("Console does not have a complete configuration - going to enter setup mode (adding `setup` route and middleware)")
 	} else {
 		needSetupMiddleware = false
-		showStratosConfig(portalProxy.Config.ConsoleConfig)
+		showStratosConfig(portalProxy, portalProxy.Config.ConsoleConfig)
 		showSSOConfig(portalProxy)
 	}
 
@@ -431,21 +445,13 @@ func initialiseConsoleConfiguration(portalProxy *portalProxy) error {
 	return nil
 }
 
-func showStratosConfig(config *interfaces.ConsoleConfig) {
+func showStratosConfig(portalProxy *portalProxy, config *interfaces.ConsoleConfig) {
 	log.Infof("Stratos is initialized with the following setup:")
 	log.Infof("... Auth Endpoint Type      : %s", config.AuthEndpointType)
-	if val, found := interfaces.AuthEndpointTypes[config.AuthEndpointType]; found {
-		if val == interfaces.Local {
-			log.Infof("... Local User              : %s", config.LocalUser)
-			log.Infof("... Local User Scope        : %s", config.LocalUserScope)
-		} else { //Auth type is set to remote
-			log.Infof("... UAA Endpoint            : %s", config.UAAEndpoint)
-			log.Infof("... Authorization Endpoint  : %s", config.AuthorizationEndpoint)
-			log.Infof("... Console Client          : %s", config.ConsoleClient)
-			log.Infof("... Admin Scope             : %s", config.ConsoleAdminScope)
-			log.Infof("... Use SSO Login           : %t", config.UseSSO)
-		}
-	}
+
+	// Ask the auto provider to display their config
+	portalProxy.StratosAuthService.ShowConfig(config)
+
 	log.Infof("... Skip SSL Validation     : %t", config.SkipSSLValidation)
 	log.Infof("... Setup Complete          : %t", config.IsSetupComplete())
 }
@@ -455,7 +461,7 @@ func showSSOConfig(portalProxy *portalProxy) {
 	log.Infof("SSO Configuration:")
 	log.Infof("... SSO Enabled             : %t", portalProxy.Config.SSOLogin)
 	log.Infof("... SSO Options             : %s", portalProxy.Config.SSOOptions)
-	log.Infof("... SSO Redirect Whitelist  : %s", portalProxy.Config.SSOWhiteList)
+	log.Infof("... SSO Redirect Allow-list : %s", portalProxy.Config.SSOAllowList)
 }
 
 func getEncryptionKey(pc interfaces.PortalConfig) ([]byte, error) {
@@ -598,7 +604,7 @@ func loadPortalConfig(pc interfaces.PortalConfig, env *env.VarSet) (interfaces.P
 		if endpointTypeSupported {
 			pc.AuthEndpointType = string(val)
 		} else {
-			return pc, fmt.Errorf("AUTH_ENDPOINT_TYPE: %v is not valid. Must be set to local or remote (defaults to remote)", val)
+			return pc, fmt.Errorf("AUTH_ENDPOINT_TYPE: '%v' is not valid. Must be set to local or remote (defaults to remote)", pc.AuthEndpointType)
 		}
 	}
 
@@ -704,6 +710,36 @@ func newPortalProxy(pc interfaces.PortalConfig, dcp *sql.DB, ss HttpSessionStore
 	pp.AddAuthProvider(interfaces.AuthTypeHttpBasic, interfaces.AuthProvider{
 		Handler:  pp.doHttpBasicFlowRequest,
 		UserInfo: pp.GetCNSIUserFromBasicToken,
+	})
+
+	// No authentication
+	pp.AddAuthProvider(interfaces.AuthConnectTypeNone, interfaces.AuthProvider{
+		Handler:  pp.doNoAuthFlowRequest,
+		UserInfo: pp.getCNSIUserForNoAuth,
+	})
+
+	// Generic Bearer Auth (HTTP Authorization header with 'bearer' prefix)
+	pp.AddAuthProvider(interfaces.AuthTypeBearer, interfaces.AuthProvider{
+		Handler: pp.doBearerFlowRequest,
+		UserInfo: func(cnsiGUID string, cfTokenRecord *interfaces.TokenRecord) (*interfaces.ConnectedUser, bool) {
+			// don't fetch user info for the generic token auth
+			return &interfaces.ConnectedUser{
+				Name: cfTokenRecord.RefreshToken,
+				GUID: cfTokenRecord.RefreshToken,
+			}, true
+		},
+	})
+
+	// Generic Token Auth (HTTP Authorization header with 'token' prefix)
+	pp.AddAuthProvider(interfaces.AuthTypeToken, interfaces.AuthProvider{
+		Handler: pp.doTokenFlowRequest,
+		UserInfo: func(cnsiGUID string, cfTokenRecord *interfaces.TokenRecord) (*interfaces.ConnectedUser, bool) {
+			// don't fetch user info for the generic token auth
+			return &interfaces.ConnectedUser{
+				Name: cfTokenRecord.RefreshToken,
+				GUID: cfTokenRecord.RefreshToken,
+			}, true
+		},
 	})
 
 	// OIDC
@@ -1033,6 +1069,11 @@ func (p *portalProxy) registerRoutes(e *echo.Echo, needSetupMiddleware bool) {
 	// Proxy single request
 	stableAPIGroup.GET("/proxy/:uuid/*", p.ProxySingleRequest)
 
+	sessionAuthGroup := sessionGroup.Group("/auth")
+
+	// Connect to Endpoint (SSO)
+	sessionAuthGroup.GET("/tokens", p.ssoLoginToCNSI)
+
 	// Info
 	sessionGroup.GET("/info", p.info)
 
@@ -1216,4 +1257,16 @@ func stopEchoWhenUpgraded(e *echo.Echo, env *env.VarSet) {
 	}
 	log.Info("Upgrade has completed! Shutting down Upgrade web server instance")
 	e.Close()
+}
+
+// GetStoreFactory gets the store factory
+func (portalProxy *portalProxy) GetStoreFactory() interfaces.StoreFactory {
+	return portalProxy.StoreFactory
+}
+
+// SetStoreFactory sets the store factory
+func (portalProxy *portalProxy) SetStoreFactory(f interfaces.StoreFactory) interfaces.StoreFactory {
+	old := portalProxy.StoreFactory
+	portalProxy.StoreFactory = f
+	return old
 }

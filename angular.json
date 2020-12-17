@@ -11,6 +11,18 @@
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+              "moment-timezone",
+              "js-yaml",
+              "webcola",
+              "dagre",
+              "lodash/isEqual",
+              "ajv",
+              "lodash/filter",
+              "lodash/map",
+              "lodash/uniqueId",
+              "lodash/cloneDeep"
+            ],
             "customWebpackConfig": {
               "path": "./dist-devkit/build/main.js"
             },
@@ -61,7 +73,23 @@
                 "replace": "src/frontend/packages/core/src/environments/environment.ts",
                 "with": "src/frontend/packages/core/src/environments/environment.prod.ts"
               }]
+            },
+            "desktop": {
+              "optimization": false,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": false,
+              "fileReplacements": [{
+                "replace": "src/frontend/packages/core/src/environments/environment.ts",
+                "with": "src/frontend/packages/core/src/environments/environment.desktop.ts"
+              }]
             }
+
           }
         },
         "serve": {
@@ -77,6 +105,9 @@
           "configurations": {
             "production": {
               "browserTarget": "stratos:build:production"
+            },
+            "desktop": {
+              "browserTarget": "stratos:build:desktop"
             }
           }
         },
@@ -400,6 +431,34 @@
             "tslintConfig": "src/frontend/packages/kubernetes/tslint.json",
             "files": [
               "src/frontend/packages/kubernetes/src/**/*.ts"
+            ]
+          }
+        }
+      }
+    },
+    "git": {
+      "root": "src/frontend/packages/git",
+      "sourceRoot": "src/frontend/packages/git/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "architect": {
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "src/frontend/packages/git/src/test.ts",
+            "tsConfig": "src/frontend/packages/git/tsconfig.spec.json",
+            "karmaConfig": "src/frontend/packages/git/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "src/tsconfig.json"
+            ],
+            "tslintConfig": "src/frontend/packages/git/tslint.json",
+            "files": [
+              "src/frontend/packages/git/src/**/*.ts"
             ]
           }
         }

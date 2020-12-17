@@ -54,6 +54,7 @@ type CNSIRecord struct {
 	SSOAllowed             bool     `json:"sso_allowed"`
 	SubType                string   `json:"sub_type"`
 	Metadata               string   `json:"metadata"`
+	Local                  bool     `json:"local"`
 }
 
 // ConnectedEndpoint
@@ -70,6 +71,7 @@ type ConnectedEndpoint struct {
 	TokenMetadata          string   `json:"-"`
 	SubType                string   `json:"sub_type"`
 	EndpointMetadata       string   `json:"metadata"`
+	Local                  bool     `json:"local"`
 }
 
 const (
@@ -79,11 +81,19 @@ const (
 	AuthTypeOIDC = "OIDC"
 	// AuthTypeHttpBasic means HTTP Basic auth
 	AuthTypeHttpBasic = "HttpBasic"
+	// AuthTypeBearer is http header auth with bearer prefix
+	AuthTypeBearer = "Bearer"
+	// AuthTypeToken is http header auth with token prefix
+	AuthTypeToken = "Token"
 )
 
 const (
 	// AuthConnectTypeCreds means authenticate with username/password credentials
 	AuthConnectTypeCreds = "creds"
+	// AuthConnectTypeBearer is authentication with an API token  and a auth header prefix of 'bearer'
+	AuthConnectTypeBearer = "bearer"
+	// AuthConnectTypeToken is authentication with a token and a auth header prefix of 'token'
+	AuthConnectTypeToken = "token"
 	// AuthConnectTypeNone means no authentication
 	AuthConnectTypeNone = "none"
 )
@@ -168,6 +178,7 @@ type ProxyRequestInfo struct {
 }
 
 type SessionStorer interface {
+	New(r *http.Request, name string) (*sessions.Session, error)
 	Get(r *http.Request, name string) (*sessions.Session, error)
 	Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error
 }
@@ -217,10 +228,11 @@ type Info struct {
 	PluginConfig  map[string]string                     `json:"plugin-config,omitempty"`
 	Diagnostics   *Diagnostics                          `json:"diagnostics,omitempty"`
 	Configuration struct {
-		TechPreview        bool   `json:"enableTechPreview"`
-		ListMaxSize        int64  `json:"listMaxSize,omitempty"`
-		ListAllowLoadMaxed bool   `json:"listAllowLoadMaxed,omitempty"`
-		APIKeysEnabled     string `json:"APIKeysEnabled"`
+		TechPreview               bool   `json:"enableTechPreview"`
+		ListMaxSize               int64  `json:"listMaxSize,omitempty"`
+		ListAllowLoadMaxed        bool   `json:"listAllowLoadMaxed,omitempty"`
+		APIKeysEnabled            string `json:"APIKeysEnabled"`
+		HomeViewShowFavoritesOnly bool   `json:"homeViewShowFavoritesOnly"`
 	} `json:"config"`
 }
 
@@ -248,6 +260,8 @@ const (
 	Remote AuthEndpointType = "remote"
 	//Local - String representation of remote auth endpoint type
 	Local AuthEndpointType = "local"
+	//AuthNone - String representation of no authentication
+	AuthNone AuthEndpointType = "none"
 )
 
 //AuthEndpointTypes - Allows lookup of internal string representation by the
@@ -255,6 +269,7 @@ const (
 var AuthEndpointTypes = map[string]AuthEndpointType{
 	"remote": Remote,
 	"local":  Local,
+	"none":   AuthNone,
 }
 
 // ConsoleConfig is essential configuration settings
@@ -276,6 +291,11 @@ const defaultAdminScope = "stratos.admin"
 
 // IsSetupComplete indicates if we have enough config
 func (consoleConfig *ConsoleConfig) IsSetupComplete() bool {
+
+	// No auth, then setup is complete
+	if AuthEndpointTypes[consoleConfig.AuthEndpointType] == AuthNone {
+		return true
+	}
 
 	// Local user - check setup complete
 	if AuthEndpointTypes[consoleConfig.AuthEndpointType] == Local {
@@ -316,21 +336,20 @@ func (consoleConfig *ConsoleConfig) IsSetupComplete() bool {
 
 // CNSIRequest
 type CNSIRequest struct {
-	GUID     string `json:"-"`
-	UserGUID string `json:"-"`
-
-	Method      string      `json:"-"`
-	Body        []byte      `json:"-"`
-	Header      http.Header `json:"-"`
-	URL         *url.URL    `json:"-"`
-	StatusCode  int         `json:"statusCode"`
-	Status      string      `json:"status"`
-	PassThrough bool        `json:"-"`
-	LongRunning bool        `json:"-"`
-
-	Response     []byte `json:"-"`
-	Error        error  `json:"-"`
-	ResponseGUID string `json:"-"`
+	GUID         string       `json:"-"`
+	UserGUID     string       `json:"-"`
+	Method       string       `json:"-"`
+	Body         []byte       `json:"-"`
+	Header       http.Header  `json:"-"`
+	URL          *url.URL     `json:"-"`
+	StatusCode   int          `json:"statusCode"`
+	Status       string       `json:"status"`
+	PassThrough  bool         `json:"-"`
+	LongRunning  bool         `json:"-"`
+	Response     []byte       `json:"-"`
+	Error        error        `json:"-"`
+	ResponseGUID string       `json:"-"`
+	Token        *TokenRecord `json:"-"` // Optional Token record to use instead of looking up
 }
 
 type PortalConfig struct {
@@ -354,7 +373,7 @@ type PortalConfig struct {
 	AutoRegisterCFName                 string   `configName:"AUTO_REG_CF_NAME"`
 	SSOLogin                           bool     `configName:"SSO_LOGIN"`
 	SSOOptions                         string   `configName:"SSO_OPTIONS"`
-	SSOWhiteList                       string   `configName:"SSO_WHITELIST"`
+	SSOAllowList                       string   `configName:"SSO_ALLOWLIST,SSO_WHITELIST"`
 	AuthEndpointType                   string   `configName:"AUTH_ENDPOINT_TYPE"`
 	CookieDomain                       string   `configName:"COOKIE_DOMAIN"`
 	LogLevel                           string   `configName:"LOG_LEVEL"`
@@ -374,6 +393,7 @@ type PortalConfig struct {
 	EnableTechPreview                  bool `configName:"ENABLE_TECH_PREVIEW"`
 	CanMigrateDatabaseSchema           bool
 	APIKeysEnabled                     config.APIKeysConfigValue `configName:"API_KEYS_ENABLED"`
+	HomeViewShowFavoritesOnly          bool                      `configName:"HOME_VIEW_SHOW_FAVORITES_ONLY"`
 	// CanMigrateDatabaseSchema indicates if we can safely perform migrations
 	// This depends on the deployment mechanism and the database config
 	// e.g. if running in Cloud Foundry with a shared DB, then only the 0-index application instance

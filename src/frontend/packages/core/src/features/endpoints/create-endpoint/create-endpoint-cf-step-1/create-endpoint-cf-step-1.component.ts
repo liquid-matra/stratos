@@ -1,5 +1,5 @@
-import { AfterContentInit, Component, Input, ViewChild } from '@angular/core';
-import { NgForm, NgModel } from '@angular/forms';
+import { AfterContentInit, Component, Input } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { filter, map, pairwise } from 'rxjs/operators';
@@ -17,7 +17,6 @@ import { SnackBarService } from '../../../../shared/services/snackbar.service';
 import { ConnectEndpointConfig } from '../../connect.service';
 import { getSSOClientRedirectURI } from '../../endpoint-helpers';
 
-/* tslint:disable:no-access-missing-member https://github.com/mgechev/codelyzer/issues/191*/
 @Component({
   selector: 'app-create-endpoint-cf-step-1',
   templateUrl: './create-endpoint-cf-step-1.component.html',
@@ -25,7 +24,23 @@ import { getSSOClientRedirectURI } from '../../endpoint-helpers';
 })
 export class CreateEndpointCfStep1Component implements IStepperStep, AfterContentInit {
 
+  registerForm: FormGroup;
+
   @Input() finalStep: boolean;
+  private pFixedUrl: string;
+  @Input()
+  get fixedUrl(): string {
+    return this.pFixedUrl;
+  }
+  set fixedUrl(url: string) {
+    this.pFixedUrl = url;
+    this.registerForm.controls.urlField.setValue(this.pFixedUrl);
+    if (this.pFixedUrl) {
+      this.registerForm.controls.urlField.disable();
+    } else {
+      this.registerForm.controls.urlField.enable();
+    }
+  }
 
   existingEndpoints: Observable<{
     names: string[],
@@ -33,16 +48,6 @@ export class CreateEndpointCfStep1Component implements IStepperStep, AfterConten
   }>;
 
   validate: Observable<boolean>;
-
-  @ViewChild('form', { static: true }) form: NgForm;
-  @ViewChild('nameField', { static: true }) nameField: NgModel;
-  @ViewChild('urlField', { static: true }) urlField: NgModel;
-  @ViewChild('skipSllField', { static: true }) skipSllField: NgModel;
-  @ViewChild('ssoAllowedField') ssoAllowedField: NgModel;
-
-  // Optional Client ID and Client Secret
-  @ViewChild('clientIDField') clientIDField: NgModel;
-  @ViewChild('clientSecretField') clientSecretField: NgModel;
 
   urlValidation: string;
 
@@ -53,10 +58,23 @@ export class CreateEndpointCfStep1Component implements IStepperStep, AfterConten
   endpoint: StratosCatalogEndpointEntity;
   show = false;
 
+  showAdvancedOptions = false;
+
   constructor(
+    private fb: FormBuilder,
     activatedRoute: ActivatedRoute,
     private snackBarService: SnackBarService
   ) {
+    this.registerForm = this.fb.group({
+      nameField: ['', [Validators.required]],
+      urlField: ['', [Validators.required]],
+      skipSllField: [false, []],
+      ssoAllowedField: [false, []],
+      // Optional Client ID and Client Secret
+      clientIDField: ['', []],
+      clientSecretField: ['', []],
+    });
+
     this.existingEndpoints = stratosEntityCatalog.endpoint.store.getAll.getPaginationMonitor().currentPage$.pipe(
       map(endpoints => ({
         names: endpoints.map(ep => ep.name),
@@ -78,26 +96,26 @@ export class CreateEndpointCfStep1Component implements IStepperStep, AfterConten
     return stratosEntityCatalog.endpoint.api.register<ActionState>(
       type,
       subType,
-      this.nameField.value,
-      this.urlField.value,
-      !!this.skipSllField.value,
-      this.clientIDField ? this.clientIDField.value : '',
-      this.clientSecretField ? this.clientSecretField.value : '',
-      this.ssoAllowedField ? !!this.ssoAllowedField.value : false,
+      this.registerForm.value.nameField,
+      this.registerForm.value.urlField,
+      this.registerForm.value.skipSllField,
+      this.registerForm.value.clientIDField,
+      this.registerForm.value.clientSecretField,
+      this.registerForm.value.ssoAllowedField,
     ).pipe(
       pairwise(),
       filter(([oldVal, newVal]) => (oldVal.busy && !newVal.busy)),
-      map(([oldVal, newVal]) => newVal),
+      map(([, newVal]) => newVal),
       map(result => {
         const data: ConnectEndpointConfig = {
           guid: result.message,
-          name: this.nameField.value,
+          name: this.registerForm.value.nameField,
           type,
           subType,
-          ssoAllowed: this.ssoAllowedField ? !!this.ssoAllowedField.value : false
+          ssoAllowed: this.registerForm.value.ssoAllowedField ? !!this.registerForm.value.ssoAllowedField : false
         };
         if (!result.error) {
-          this.snackBarService.show(`Successfully registered '${this.nameField.value}'`);
+          this.snackBarService.show(`Successfully registered '${this.registerForm.value.nameField}'`);
         }
         const success = !result.error;
         return {
@@ -108,13 +126,12 @@ export class CreateEndpointCfStep1Component implements IStepperStep, AfterConten
         };
       })
     );
-  }
-
+  };
 
   ngAfterContentInit() {
-    this.validate = this.form.statusChanges.pipe(
+    this.validate = this.registerForm.statusChanges.pipe(
       map(() => {
-        return this.form.valid;
+        return this.registerForm.valid;
       }));
   }
 
@@ -129,5 +146,9 @@ export class CreateEndpointCfStep1Component implements IStepperStep, AfterConten
 
     // Only allow SSL if the endpoint type is Cloud Foundry
     this.endpointTypeSupportsSSO = endpoint.definition.type === 'cf';
+  }
+
+  toggleAdvancedOptions() {
+    this.showAdvancedOptions = !this.showAdvancedOptions;
   }
 }

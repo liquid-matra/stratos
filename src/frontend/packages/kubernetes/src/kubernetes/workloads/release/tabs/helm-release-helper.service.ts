@@ -5,7 +5,7 @@ import { filter, map } from 'rxjs/operators';
 import { helmEntityCatalog } from '../../../../helm/helm-entity-catalog';
 import { ChartAttributes } from '../../../../helm/monocular/shared/models/chart';
 import { ChartMetadata } from '../../../../helm/store/helm.types';
-import { kubeEntityCatalog } from '../../../kubernetes-entity-catalog';
+import { kubeEntityCatalog } from '../../../kubernetes-entity-generator';
 import { ContainerStateCollection, KubernetesPod } from '../../../store/kube.types';
 import { getHelmReleaseDetailsFromGuid } from '../../store/workloads-entity-factory';
 import {
@@ -68,7 +68,7 @@ export class Version {
           if (this.prerelease && !other.prerelease) {
             return false;
           }
-          if(!this.prerelease && other.prerelease) {
+          if (!this.prerelease && other.prerelease) {
             return true;
           }
           if (this.prerelease && other.prerelease) {
@@ -155,6 +155,7 @@ export class HelmReleaseHelperService {
   public fetchReleaseChartStats(): Observable<HelmReleaseChartData> {
     return kubeEntityCatalog.pod.store.getInWorkload.getPaginationMonitor(
       this.endpointGuid,
+      this.namespace,
       this.releaseTitle
     ).currentPage$.pipe(
       filter(pods => !!pods),
@@ -298,14 +299,14 @@ export class HelmReleaseHelperService {
     for (let w of a.description.split(' ')) {
       w = w.toLowerCase();
       if (w.length > 3 && w !== 'helm' && w !== 'chart') {
-        words[w] = true
+        words[w] = true;
       }
     }
 
     let common = 0;
     for (let w of b.description.split(' ')) {
       w = w.toLowerCase();
-      if(words[w]) {
+      if (words[w]) {
         common++;
       }
     }
