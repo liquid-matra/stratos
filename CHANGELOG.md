@@ -1,5 +1,16 @@
 # Change Log
 
+## 4.4.1
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.4.0...4.4.1)
+
+This release contains the following fixes:
+
+**Fixes:**
+
+- Can't deploy Stratos via Helm to a k8s cluster with Pod Security Policies enabled [\#4862](https://github.com/cloudfoundry/stratos/issues/4862)
+
+
 ## 4.4.0
 
 [Full Changelog](https://github.com/cloudfoundry/stratos/compare/4.3.0...4.4.0)
