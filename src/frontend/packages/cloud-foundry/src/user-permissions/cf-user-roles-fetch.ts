@@ -152,13 +152,8 @@ class PermissionFlattener extends BaseHttpClientFetcher<CFResponse> implements P
 
   public mergePages = (res: CFResponse[]) => {
     const firstRes = res.shift();
-    const final = res.reduce((finalRes, currentRes) => {
-      finalRes.resources = [
-        ...finalRes.resources,
-      ];
-      return finalRes;
-    }, firstRes);
-    return final;
+    firstRes.resources = firstRes.resources.concat(...res.map(page => page.resources));
+    return firstRes;
   };
   public getTotalResults = (res: CFResponse): number => res.total_results;
   public clearResults = (res: CFResponse) => of(res);
