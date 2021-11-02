@@ -1,5 +1,15 @@
 # Change Log
 
+## 4.4.2
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.4.1...4.4.2)
+
+This release contains the following fixes:
+
+**Fixes:**
+
+- Non-admin CF users cannot see all roles if they exceed 100 [\#548](https://github.com/SUSE/stratos/issues/549)
+
 ## 4.4.1
 
 [Full Changelog](https://github.com/SUSE/stratos/compare/4.4.0...4.4.1)
