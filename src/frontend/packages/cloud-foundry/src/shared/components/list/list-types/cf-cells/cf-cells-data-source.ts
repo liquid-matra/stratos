@@ -36,7 +36,7 @@ export class CfCellsDataSource
         if (!response || response.length === 0) {
           return [];
         }
-        return response[0].data.result;
+        return [...response[0].data.result];
       }),
       listConfig
     });
