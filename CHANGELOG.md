@@ -1,5 +1,15 @@
 # Change Log
 
+## 4.4.3
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.4.2...4.4.3)
+
+This release contains the following fixes:
+
+**Fixes:**
+
+- Diego cell information is missing from the Cloud Foundry instance page [\#552](https://github.com/SUSE/stratos/issues/552)
+
 ## 4.4.2
 
 [Full Changelog](https://github.com/SUSE/stratos/compare/4.4.1...4.4.2)
