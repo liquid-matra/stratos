@@ -32,12 +32,7 @@ export class CfCellsDataSource
       paginationKey: action.paginationKey,
       isLocal: true,
       transformEntities: [{ type: 'filter', field: CfCellsDataSource.cellIdPath }],
-      transformEntity: map((response) => {
-        if (!response || response.length === 0) {
-          return [];
-        }
-        return response[0].data.result;
-      }),
+      transformEntity: map((response) => [...(response?.[0]?.data?.result || [])]),
       listConfig
     });
   }
