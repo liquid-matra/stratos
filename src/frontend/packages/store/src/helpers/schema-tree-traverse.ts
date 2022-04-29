@@ -1,4 +1,4 @@
-import { denormalize } from 'normalizr';
+import { denormalize } from '../../../store/src/normalizr/normalizr';
 
 import { IRequestTypeState } from '../app-state';
 import { IRecursiveDelete } from '../effects/recursive-entity-delete.effect';

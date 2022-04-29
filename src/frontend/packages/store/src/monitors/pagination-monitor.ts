@@ -1,5 +1,6 @@
 import { Store } from '@ngrx/store';
-import { denormalize, schema as normalizrSchema } from 'normalizr';
+import { denormalize, schema as normalizrSchema } from '../../../store/src/normalizr/normalizr';
+
 import { asapScheduler, combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { tag } from 'rxjs-spy/operators';
 import {
