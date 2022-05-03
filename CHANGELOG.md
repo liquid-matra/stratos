@@ -1,5 +1,15 @@
 # Change Log
 
+## 4.4.4
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.4.3...4.4.4)
+
+This release contains the following fixes:
+
+**Fixes:**
+
+- Organisation Users page sometimes don't show all user's space roles [\#555](https://github.com/SUSE/stratos/issues/555)
+
 ## 4.4.3
 
 [Full Changelog](https://github.com/SUSE/stratos/compare/4.4.2...4.4.3)
