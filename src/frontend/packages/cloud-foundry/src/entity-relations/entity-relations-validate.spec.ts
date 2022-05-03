@@ -282,6 +282,8 @@ describe('Entity Relations - validate -', () => {
 
       advancedSetup(store => {
         store.requestData[orgEntityKey][orgGuid].entity.spaces = [space];
+        // Ensure the space exists in the store so when we denormalize it can correctly find it
+        store.requestData[spaceEntityKey][space.metadata.guid] = space;
         return store;
       });
 

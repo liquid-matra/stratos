@@ -1,5 +1,5 @@
 import { Action, Store } from '@ngrx/store';
-import { denormalize } from 'normalizr';
+import { denormalize } from '../../../store/src/normalizr/normalizr';
 import { Observable, of as observableOf } from 'rxjs';
 import { filter, first, map, mergeMap, pairwise, skipWhile, switchMap, withLatestFrom } from 'rxjs/operators';
 

@@ -1,4 +1,4 @@
-import { Schema, schema } from 'normalizr';
+import { Schema, schema } from '../../../store/src/normalizr/normalizr';
 
 import { getAPIResourceGuid } from '../../../cloud-foundry/src/store/selectors/api.selectors';
 import { EntitySchema } from '../../../store/src/helpers/entity-schema';

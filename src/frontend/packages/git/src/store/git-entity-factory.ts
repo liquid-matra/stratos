@@ -1,4 +1,4 @@
-import { schema } from 'normalizr';
+import { Schema, schema } from '../../../store/src/normalizr/normalizr';
 
 import { EntitySchema } from '../../../store/src/helpers/entity-schema';
 import { GitBranch, GitCommit, GitRepo } from './git.public-types';
