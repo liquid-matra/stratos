@@ -1,3 +1,4 @@
+/* tslint:disable */
 declare namespace schema {
   export type StrategyFunction<T> = (value: any, parent: any, key: string) => T;
   export type SchemaFunction = (value: any, parent: any, key: string) => string;
