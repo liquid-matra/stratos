@@ -30,6 +30,7 @@ const EndpointSchema = new StratosEntitySchema(endpointEntityType, 'guid');
 entityCache[endpointEntityType] = EndpointSchema;
 
 const UserProfileInfoSchema = new StratosEntitySchema(userProfileEntityType, 'id');
+UserProfileInfoSchema.getId = () => userProfileEntityType;
 entityCache[userProfileEntityType] = UserProfileInfoSchema;
 
 const ApiKeySchema = new StratosEntitySchema(apiKeyEntityType, 'guid');
