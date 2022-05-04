@@ -561,7 +561,13 @@ var getUnvisit = function getUnvisit(entities) {
 
     if (schema instanceof EntitySchema) {
       if (typeof input === 'object' && schema.getId) {
-        input = schema.getId(input);
+        const id = schema.getId(input); // Some parts of the console don't specify the correct `getId` or `idAttribute` (latter is used by
+        // default `idAttribute`) i.e. `MetricSchema`. This causes a miss-match between the guid in the action (i.e. MetricsAction) and what
+        // we cache it by. It's better to fix this by a custom `getId`, but for metrics case there's not enough info within the entity to
+        // get it's id
+        if (id) {
+          input = id;
+        }
       }
 
       return unvisitEntity(input, schema, unvisit, getEntity, cache);
