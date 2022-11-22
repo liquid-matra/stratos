@@ -203,8 +203,18 @@ export interface IGlobalListAction<T> extends IOptionalAction<T> {
   action: () => void;
 }
 
+/**
+ * Class to support a single multi filter entry/drop down
+ */
 export class MultiFilterManager<T> {
+  /**
+   * Supporting dependencies ready and there are items available to select
+   */
   public filterIsReady$: Observable<boolean>;
+  /**
+   * Supporting dependencies ready and the items to select have been fetched (but may be zero)
+   */
+  public filterIsInitialised$: Observable<boolean>;
   public filterItems$: Observable<IListMultiFilterConfigItem[]>;
   public hasItems$: Observable<boolean>;
   public hasOneOrLessItems$: Observable<boolean>;
@@ -225,6 +235,7 @@ export class MultiFilterManager<T> {
     this.hasOneOrLessItems$ = this.filterItems$.pipe(map(items => items.length <= 1));
     this.hasItems$ = this.filterItems$.pipe(map(items => !!items.length));
     this.filterIsReady$ = this.getReadyObservable(multiFilterConfig, dataSource, this.hasItems$);
+    this.filterIsInitialised$ = this.getInitialisedObservable(multiFilterConfig, dataSource, this.filterItems$);
 
     // Also select the first option if configured
     if (multiFilterConfig.autoSelectFirst) {
@@ -247,6 +258,21 @@ export class MultiFilterManager<T> {
       hasItems$,
     ).pipe(
       map(([fetchingListPage, fetchingFilter, hasItems]) => (!fetchingListPage && !fetchingFilter) && hasItems),
+      startWith(false)
+    );
+  }
+
+  private getInitialisedObservable(
+    multiFilterConfig: IListMultiFilterConfig,
+    dataSource: IListDataSource<T>,
+    filterItems$: Observable<IListMultiFilterConfigItem[]>
+  ) {
+    return combineLatest(
+      dataSource.isLoadingPage$,
+      multiFilterConfig.loading$,
+      filterItems$,
+    ).pipe(
+      map(([fetchingListPage, fetchingFilter, filterItems]) => (!fetchingListPage && !fetchingFilter) && !!filterItems),
       startWith(false)
     );
   }
