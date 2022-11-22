@@ -473,7 +473,7 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
 
     combineLatest(this.multiFilterManagers.map(mfm => {
       // Use this instead of filterIsReady$ to ensure the drop downs report as ready even when there's nothing to select
-      return mfm.filterIsInitialised$
+      return mfm.filterIsInitialised$;
     })).pipe(
       filter(firs => firs.every(ready => ready)),
       switchMap(() => this.paginationController.filter$),

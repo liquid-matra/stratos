@@ -174,7 +174,8 @@ export class LocalStorageService {
               clientPagination: paginationSection.clientPagination,
               isListPagination: paginationSection.isListPagination, // We do not persist any that are false
               forcedLocalPage: paginationSection.forcedLocalPage, // Value of the multi-entity filter
-              maxedState: paginationSection.maxedState // Persist this state, so the console knows to set q params on filter change (means user is stuck in max'd view)
+              // Persist this state, so the console knows to set q params on filter change (means user is stuck in max'd view)
+              maxedState: paginationSection.maxedState
             };
             return res2;
           }, {});
