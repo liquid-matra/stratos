@@ -1,5 +1,14 @@
 # Change Log
 
+## 4.4.5
+
+[Full Changelog](https://github.com/SUSE/stratos/compare/4.4.4...4.4.5)
+
+This release contains the following fixes:
+
+**Fixes:**
+- List filters fail to work after refreshing a 'max'ed list [\#560](https://github.com/SUSE/stratos/issues/560)
+
 ## 4.4.4
 
 [Full Changelog](https://github.com/SUSE/stratos/compare/4.4.3...4.4.4)
