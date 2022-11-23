@@ -22,6 +22,7 @@ import { Store } from '@ngrx/store';
 import {
   asapScheduler,
   BehaviorSubject,
+  combineLatest,
   combineLatest as observableCombineLatest,
   isObservable,
   Observable,
@@ -39,6 +40,7 @@ import {
   refCount,
   startWith,
   subscribeOn,
+  switchMap,
   takeWhile,
   tap,
   withLatestFrom,
@@ -468,7 +470,13 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
     // - Pass any multi filter changes made by the user to the pagination controller and thus the store
     // - If the first multi filter has one value it's not shown, ensure it's automatically selected to ensure other filters are correct
     this.multiFilterWidgetObservables = new Array<Subscription>();
-    this.paginationController.filter$.pipe(
+
+    combineLatest(this.multiFilterManagers.map(mfm => {
+      // Use this instead of filterIsReady$ to ensure the drop downs report as ready even when there's nothing to select
+      return mfm.filterIsInitialised$;
+    })).pipe(
+      filter(firs => firs.every(ready => ready)),
+      switchMap(() => this.paginationController.filter$),
       first(),
       tap(() => {
         Object.values(this.multiFilterManagers).forEach((filterManager: MultiFilterManager<T>, index: number) => {
