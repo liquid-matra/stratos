@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/custombinder"
-	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/docs"
+	// _ "github.com/cloudfoundry-incubator/stratos/src/jetstream/docs"
 
 	"bitbucket.org/liamstask/goose/lib/goose"
 	"github.com/antonlindstrom/pgstore"
