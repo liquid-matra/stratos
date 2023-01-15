@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
-	"github.com/cloudfoundry/noaa"
 	"github.com/cloudfoundry/noaa/consumer"
 	noaa_errors "github.com/cloudfoundry/noaa/errors"
 	"github.com/cloudfoundry/sonde-go/events"
@@ -323,7 +322,9 @@ func appStreamHandler(echoContext echo.Context, ac *AuthorizedConsumer, clientWe
 	}
 
 	// Send the recent messages, sorted in Chronological order
-	for _, msg := range noaa.SortRecent(messages) {
+	//for _, msg := range noaa.SortRecent(messages) {
+	// log-cache sends sorted output.
+	for _, msg := range messages {
 		relayLogMsg(msg)
 	}
 
