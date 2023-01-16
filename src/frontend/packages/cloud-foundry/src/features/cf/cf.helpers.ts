@@ -191,7 +191,7 @@ export function hasSpaceRoleWithinOrg(user: CfUser, orgGuid: string): boolean {
   const orgSpaces = [];
 
   for (const role of roles) {
-    const roleSpaces = user[role] as APIResource<ISpace>[];
+    const roleSpaces = (user[role] || []) as APIResource<ISpace>[];
 
     orgSpaces.push(...roleSpaces.filter((space) => {
       return space.entity.organization_guid === orgGuid;

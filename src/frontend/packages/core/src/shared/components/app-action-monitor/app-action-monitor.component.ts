@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { schema } from 'normalizr';
+import { schema } from '../../../../../store/src/normalizr/normalizr';
 import { never as observableNever, Observable, of as observableOf } from 'rxjs';
 import { map, publishReplay, refCount } from 'rxjs/operators';
 

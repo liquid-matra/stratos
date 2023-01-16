@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Schema, schema } from 'normalizr';
+import { Schema, schema } from '../../store/src/normalizr/normalizr';
 
 // Allowable endpoint types
 export type EndpointType = 'cf' | 'metrics' | string;

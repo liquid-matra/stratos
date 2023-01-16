@@ -20,8 +20,8 @@ export class E2E {
    * Temporary location for customization, we should in future look to fetch this a better way from client side code
   */
   public static customization: CustomizationsMetadata = {
-    alwaysShowNavForEndpointTypes: (epType) => true
-  };
+    alwaysShowNavForEndpointTypes: (epType) => false // Should match implementation in suse.module
+  }
 
   // General helpers
   public helper = new E2EHelpers();
@@ -198,7 +198,7 @@ export class E2ESetup {
       E2E.debugLog('Create session as user: ' + (userType === ConsoleUserType.admin ? 'admin' : 'user'));
       return this.reqHelper.createSession(req, userType);
     });
-  };
+  }
 
   private getReq(userType: ConsoleUserType) {
     if (userType === ConsoleUserType.admin) {

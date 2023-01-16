@@ -1,5 +1,6 @@
 import { Store } from '@ngrx/store';
-import { denormalize, schema as normalizrSchema } from 'normalizr';
+import { denormalize, schema as normalizrSchema } from '../../../store/src/normalizr/normalizr';
+
 import { combineLatest, interval as observableInterval, Observable } from 'rxjs';
 import { tag } from 'rxjs-spy/operators/tag';
 import {

@@ -38,7 +38,8 @@ jobs:
     - name: Backend Lint
       before_script:
         - "./deploy/ci/travis/install-go.sh"
-        - go get -u golang.org/x/lint/golint
+        - export GO111MODULE=on
+        - go get golang.org/x/lint/golint@v0.0.0-20190909230951-414d861bb4ac
       script:
         - golint src/jetstream/...
         - ./deploy/ci/travis/update-go-report-card.sh

@@ -58,10 +58,7 @@ const catalogEndpointEntity = new StratosBaseCatalogEntity({
 const catalogEntity = new StratosBaseCatalogEntity({
   endpoint: catalogEndpointEntity.definition as IStratosEndpointDefinition,
   type: entityType,
-  schema: new EntitySchema(
-    entityType,
-    endpointType
-  ),
+  schema: entitySchema,
   label: 'Entity',
   labelPlural: 'Entities',
 
@@ -81,7 +78,7 @@ function getAllTheThings(store: Store<GeneralAppState>, guid: string, schemaKey:
   const entities = {
     [entitySchema.key]: {
       [guid]: {
-        guid,
+        id: guid,
         test: 123
       }
     }

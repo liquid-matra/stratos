@@ -1,5 +1,5 @@
 import { Action } from '@ngrx/store';
-import { normalize } from 'normalizr';
+import { normalize } from '../../../../store/src/normalizr/normalizr';
 
 import { entityCatalog } from '../../entity-catalog/entity-catalog';
 import { StratosBaseCatalogEntity } from '../../entity-catalog/entity-catalog-entity/entity-catalog-entity';

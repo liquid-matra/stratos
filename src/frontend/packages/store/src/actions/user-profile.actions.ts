@@ -8,7 +8,7 @@ export const UPDATE_USERPROFILE = '[UserProfile] Update';
 export const UPDATE_USERPASSWORD = '[UserPassword] Update';
 
 abstract class BaseProfileAction implements EntityRequestAction {
-  static guid = 'userProfile';
+  static guid = userProfileEntityType;
   guid = BaseProfileAction.guid;
   entityType = userProfileEntityType;
   endpointType = STRATOS_ENDPOINT_TYPE;
