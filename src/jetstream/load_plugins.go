@@ -5,6 +5,14 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/yamlgenerated"
+
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/autoscaler"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/cfapppush"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/cfappssh"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/cloudfoundry"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/kubernetes"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/monocular"
+	_ "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins/userinvite"
 )
 
 func (pp *portalProxy) loadPlugins() {
@@ -17,6 +25,15 @@ func (pp *portalProxy) loadPlugins() {
 	for name := range interfaces.PluginInits {
 		addPlugin(pp, name)
 	}
+	addPlugin(pp, "autoscaler")
+	addPlugin(pp, "cloudfoundry")
+	addPlugin(pp, "autoscaler")
+	addPlugin(pp, "cfapppush")
+	addPlugin(pp, "cfappssh")
+	addPlugin(pp, "kubernetes")
+	addPlugin(pp, "userinvite")
+	addPlugin(pp, "monocular")
+
 }
 
 func addPlugin(pp *portalProxy, name string) bool {

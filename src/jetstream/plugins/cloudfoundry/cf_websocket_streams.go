@@ -4,17 +4,18 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
-	"github.com/cloudfoundry/noaa"
 	"github.com/cloudfoundry/noaa/consumer"
 	noaa_errors "github.com/cloudfoundry/noaa/errors"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,6 +26,43 @@ const (
 	// Send ping messages to peer with this period (must be less than pongWait)
 	pingPeriod = (pongWait * 9) / 10
 )
+
+type logCacheResponse struct {
+	Envelopes struct {
+		Batch []logCacheMessage `json:"batch"`
+	} `json:"envelopes"`
+}
+
+type logCacheMessage struct {
+	Timestamp      string `json:"timestamp"`
+	SourceID       string `json:"source_id"`
+	InstanceID     string `json:"instance_id"`
+	DeprecatedTags struct {
+	} `json:"deprecated_tags"`
+	Tags struct {
+		AppID             string `json:"app_id"`
+		AppName           string `json:"app_name"`
+		Deployment        string `json:"deployment"`
+		Index             string `json:"index"`
+		InstanceID        string `json:"instance_id"`
+		IP                string `json:"ip"`
+		Job               string `json:"job"`
+		OrganizationID    string `json:"organization_id"`
+		OrganizationName  string `json:"organization_name"`
+		Origin            string `json:"origin"`
+		ProcessID         string `json:"process_id"`
+		ProcessInstanceID string `json:"process_instance_id"`
+		ProcessType       string `json:"process_type"`
+		SourceID          string `json:"source_id"`
+		SourceType        string `json:"source_type"`
+		SpaceID           string `json:"space_id"`
+		SpaceName         string `json:"space_name"`
+	} `json:"tags"`
+	Log struct {
+		Payload string `json:"payload"`
+		Type    string `json:"type"`
+	} `json:"log"`
+}
 
 // Allow connections from any Origin
 var upgrader = websocket.Upgrader{
@@ -124,9 +162,32 @@ func (c CloudFoundrySpecification) openNoaaConsumer(echoContext echo.Context) (*
 // Attempts to get the recent logs, if we get an unauthorized error we will refresh the auth token and retry once
 func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.LogMessage, error) {
 	log.Debug("getRecentLogs")
-	messages, err := ac.consumer.RecentLogs(appGUID, ac.authToken)
+
+	// fetch logs from log-cache
+	logCacheResponse, err := getLogCacheLogs(appGUID, ac.authToken)
 	if err != nil {
-		errorPattern := "Failed to get recent messages for App %s on CNSI %s [%v]"
+		errorPattern := "New: failed to get recent messages for App %s on CNSI %s [%v]"
+		if _, ok := err.(*noaa_errors.UnauthorizedError); ok {
+			// If unauthorized, we may need to refresh our Auth token and try again
+			if err := ac.refreshToken(); err != nil {
+				return nil, fmt.Errorf(errorPattern, appGUID, cnsiGUID, err)
+			}
+			logCacheResponse, err = getLogCacheLogs(appGUID, ac.authToken)
+			if err != nil {
+				msg := fmt.Sprintf(errorPattern, appGUID, cnsiGUID, err)
+				return nil, echo.NewHTTPError(http.StatusUnauthorized, msg)
+			}
+		} else {
+			return nil, fmt.Errorf(errorPattern, appGUID, cnsiGUID, err)
+		}
+	}
+
+	// transform log-cache format to legacy format
+	messages := logCacheTranslation(&logCacheResponse)
+	// messages, err := ac.consumer.RecentLogs(appGUID, ac.authToken)
+
+	if err != nil {
+		errorPattern := "Old: Failed to get recent messages for App %s on CNSI %s [%v]"
 		if _, ok := err.(*noaa_errors.UnauthorizedError); ok {
 			// If unauthorized, we may need to refresh our Auth token
 			// Note: annoyingly, older versions of CF also send back "401 - Unauthorized" when the app doesn't exist...
@@ -144,6 +205,68 @@ func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.
 		}
 	}
 	return messages, nil
+}
+
+func getLogCacheLogs(token string, appGuid string) (logCacheResponse, error) {
+	envelopType := "LOG"
+	logCacheEndpoint := os.Getenv("LOG_CACHE_ENDPOINT")
+	logCacheUrl := logCacheEndpoint + "/api/v1/read" + appGuid
+
+	// ctx := context.Background()
+	request, err := http.NewRequest(http.MethodGet, logCacheUrl, nil)
+	if err != nil {
+		log.Fatalf("Could not generate HTTP request: %v", err.Error())
+	}
+	q := request.URL.Query()
+	q.Add("envelope_types", envelopType)
+	request.URL.RawQuery = q.Encode()
+
+	request.Header.Set("Authorization", token)
+	client := &http.Client{}
+	response, err := client.Do(request)
+
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusOK {
+		bytes, _ := io.ReadAll(response.Body)
+		var logCacheResponse logCacheResponse // The new log cache format
+
+		// Debug Info
+		// responseText := string(bytes)
+		// fmt.Println(responseText)
+
+		json.Unmarshal(bytes, &logCacheResponse)
+		return logCacheResponse, nil
+	}
+	// Empty response if status not OK
+	return logCacheResponse{}, err
+}
+
+// hotfix for loggregator 107.0.0 breaking change ( removal of deprecated RecentLogs )
+func logCacheTranslation(res *logCacheResponse) []*events.LogMessage {
+	var logMessages []*events.LogMessage
+	for _, m := range res.Envelopes.Batch {
+
+		// conversion from string to int64 because events.LogMessage wants that
+		i, err := strconv.ParseInt(m.Timestamp, 10, 64)
+		if err != nil {
+			log.Println("unable to transform string unix timestamp to int64")
+		}
+		// conversion of message Type
+		var logType events.LogMessage_MessageType
+
+		msg := events.LogMessage{
+			Timestamp:      &i,
+			AppId:          &m.SourceID,
+			MessageType:    logType.Enum(),
+			SourceType:     &m.Tags.SourceType,
+			Message:        []byte(m.Log.Payload),
+			SourceInstance: &m.InstanceID,
+		}
+
+		logMessages = append(logMessages, &msg)
+	}
+	return logMessages
 }
 
 func drainErrors(errorChan <-chan error) {
@@ -203,7 +326,9 @@ func appStreamHandler(echoContext echo.Context, ac *AuthorizedConsumer, clientWe
 	}
 
 	// Send the recent messages, sorted in Chronological order
-	for _, msg := range noaa.SortRecent(messages) {
+	//for _, msg := range noaa.SortRecent(messages) {
+	// log-cache sends sorted output.
+	for _, msg := range messages {
 		relayLogMsg(msg)
 	}
 
