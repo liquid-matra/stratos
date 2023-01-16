@@ -210,13 +210,17 @@ func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.
 func getLogCacheLogs(token string, appGuid string) (logCacheResponse, error) {
 	envelopType := "LOG"
 	logCacheEndpoint := os.Getenv("LOG_CACHE_ENDPOINT")
-	logCacheUrl := logCacheEndpoint + appGuid + "?envelope_types=" + envelopType
+	logCacheUrl := logCacheEndpoint + "/api/v1/read" + appGuid
 
 	// ctx := context.Background()
 	request, err := http.NewRequest(http.MethodGet, logCacheUrl, nil)
 	if err != nil {
-		log.Fatalln("Could not generate HTTP request")
+		log.Fatalf("Could not generate HTTP request: %v", err.Error())
 	}
+	q := request.URL.Query()
+	q.Add("envelope_types", envelopType)
+	request.URL.RawQuery = q.Encode()
+
 	request.Header.Set("Authorization", token)
 	client := &http.Client{}
 	response, err := client.Do(request)
