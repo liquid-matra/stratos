@@ -1,6 +1,7 @@
 package cloudfoundry
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -160,11 +161,11 @@ func (c CloudFoundrySpecification) openNoaaConsumer(echoContext echo.Context) (*
 }
 
 // Attempts to get the recent logs, if we get an unauthorized error we will refresh the auth token and retry once
-func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.LogMessage, error) {
+func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string, ctx context.Context) ([]*events.LogMessage, error) {
 	log.Debug("getRecentLogs")
 
 	// fetch logs from log-cache
-	logCacheResponse, err := getLogCacheLogs(appGUID, ac.authToken)
+	logCacheResponse, err := getLogCacheLogs(appGUID, ac.authToken, ctx)
 	if err != nil {
 		errorPattern := "New: failed to get recent messages for App %s on CNSI %s [%v]"
 		if _, ok := err.(*noaa_errors.UnauthorizedError); ok {
@@ -172,7 +173,7 @@ func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.
 			if err := ac.refreshToken(); err != nil {
 				return nil, fmt.Errorf(errorPattern, appGUID, cnsiGUID, err)
 			}
-			logCacheResponse, err = getLogCacheLogs(appGUID, ac.authToken)
+			logCacheResponse, err = getLogCacheLogs(appGUID, ac.authToken, ctx)
 			if err != nil {
 				msg := fmt.Sprintf(errorPattern, appGUID, cnsiGUID, err)
 				return nil, echo.NewHTTPError(http.StatusUnauthorized, msg)
@@ -207,13 +208,14 @@ func getRecentLogs(ac *AuthorizedConsumer, cnsiGUID, appGUID string) ([]*events.
 	return messages, nil
 }
 
-func getLogCacheLogs(token string, appGuid string) (logCacheResponse, error) {
+func getLogCacheLogs(token string, appGuid string, ctx context.Context) (logCacheResponse, error) {
 	envelopType := "LOG"
 	logCacheEndpoint := os.Getenv("LOG_CACHE_ENDPOINT")
 	logCacheUrl := logCacheEndpoint + "/api/v1/read" + appGuid
 
 	// ctx := context.Background()
-	request, err := http.NewRequest(http.MethodGet, logCacheUrl, nil)
+	// request, err := http.NewRequest(http.MethodGet, logCacheUrl, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, logCacheUrl, nil)
 	if err != nil {
 		log.Fatalf("Could not generate HTTP request: %v", err.Error())
 	}
@@ -308,7 +310,7 @@ func appStreamHandler(echoContext echo.Context, ac *AuthorizedConsumer, clientWe
 
 	log.Infof("Received request for log stream for App ID: %s - in CNSI: %s", appGUID, cnsiGUID)
 
-	messages, err := getRecentLogs(ac, cnsiGUID, appGUID)
+	messages, err := getRecentLogs(ac, cnsiGUID, appGUID, echoContext.Request().Context())
 	if err != nil {
 		return err
 	}
